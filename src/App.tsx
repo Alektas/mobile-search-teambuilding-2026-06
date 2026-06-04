@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, TouchEvent, UIEvent } from "react";
 import scheduleUrl from "./data/schedule.json?url";
 
 const SETTINGS_KEY = "mobile-search-teambuilding-settings-v1";
 const HOUR_MS = 60 * 60 * 1000;
 const TIMEZONE = "Europe/Moscow";
+const HEADER_SCROLL_DELTA = 16;
+const HEADER_EXPAND_SCROLL_TOP = 8;
+const PROGRAMMATIC_HEADER_SCROLL_GUARD_MS = 900;
+const TELEGRAM_SWIPE_GUARD_KEY = "__scheduleTelegramSwipeGuard";
+const TELEGRAM_HORIZONTAL_GESTURE_LOCK_MS = 1400;
 
 const EVENT_TYPES = [
   "conference",
@@ -184,6 +189,92 @@ const DEFAULT_SETTINGS: LocalSettings = {
   theme: "light"
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function getTelegramWebApp(): TelegramWebApp | undefined {
+  return window.Telegram?.WebApp;
+}
+
+function hasTelegramLaunchParams(): boolean {
+  return `${window.location.search} ${window.location.hash}`.includes("tgWebApp");
+}
+
+function isLikelyTelegramSurface(webApp = getTelegramWebApp()): boolean {
+  const hasInitData = typeof webApp?.initData === "string" && webApp.initData.length > 0;
+  const hasUnsafeData = isRecord(webApp?.initDataUnsafe) && Object.keys(webApp.initDataUnsafe).length > 0;
+  const hasTelegramReferrer = document.referrer.startsWith("android-app://org.telegram.");
+
+  return hasInitData || hasUnsafeData || hasTelegramLaunchParams() || hasTelegramReferrer || /Telegram/i.test(navigator.userAgent);
+}
+
+function prepareTelegramWebApp(): boolean {
+  const webApp = getTelegramWebApp();
+  const isTelegramSurface = isLikelyTelegramSurface(webApp);
+
+  if (!isTelegramSurface || !webApp) {
+    return isTelegramSurface;
+  }
+
+  try {
+    webApp.ready?.();
+    webApp.expand?.();
+    webApp.disableVerticalSwipes?.();
+  } catch {
+    return isTelegramSurface;
+  }
+
+  return isTelegramSurface;
+}
+
+function hasCoarsePointer(): boolean {
+  return typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+}
+
+function createTelegramSwipeGuardState(baseState: unknown): Record<string, unknown> {
+  return {
+    ...(isRecord(baseState) ? baseState : {}),
+    [TELEGRAM_SWIPE_GUARD_KEY]: true
+  };
+}
+
+function installTelegramSwipeHistoryGuard(getLastHorizontalGestureAt: () => number): () => void {
+  if (!window.history?.pushState) {
+    return () => undefined;
+  }
+
+  let allowingBackNavigation = false;
+
+  if (!isRecord(window.history.state) || window.history.state[TELEGRAM_SWIPE_GUARD_KEY] !== true) {
+    window.history.pushState(createTelegramSwipeGuardState(window.history.state), "", window.location.href);
+  }
+
+  const handlePopState = () => {
+    if (allowingBackNavigation) {
+      return;
+    }
+
+    const recentHorizontalGesture =
+      window.performance.now() - getLastHorizontalGestureAt() < TELEGRAM_HORIZONTAL_GESTURE_LOCK_MS;
+
+    if (recentHorizontalGesture) {
+      window.history.pushState(createTelegramSwipeGuardState(window.history.state), "", window.location.href);
+      return;
+    }
+
+    allowingBackNavigation = true;
+    window.removeEventListener("popstate", handlePopState);
+    window.history.back();
+  };
+
+  window.addEventListener("popstate", handlePopState);
+
+  return () => {
+    window.removeEventListener("popstate", handlePopState);
+  };
+}
+
 function isEventType(value: unknown): value is EventType {
   return typeof value === "string" && EVENT_TYPES.includes(value as EventType);
 }
@@ -339,13 +430,15 @@ function findRelevantEvent(events: ScheduleEvent[], now: Date): ScheduleEvent | 
   }) ?? sorted[0];
 }
 
-function ToggleButton({
+function IconButton({
   active,
+  ariaLabel,
   children,
   onClick,
   title
 }: {
-  active: boolean;
+  active?: boolean;
+  ariaLabel: string;
   children: ReactNode;
   onClick: () => void;
   title?: string;
@@ -354,10 +447,11 @@ function ToggleButton({
     <button
       type="button"
       aria-pressed={active}
-      title={title}
+      aria-label={ariaLabel}
+      title={title ?? ariaLabel}
       onClick={onClick}
       className={[
-        "min-h-10 rounded-lg border px-3 py-2 text-sm font-semibold transition",
+        "grid h-10 w-10 shrink-0 place-items-center rounded-lg border transition",
         active
           ? "border-slate-950 bg-slate-950 text-white dark:border-white dark:bg-white dark:text-slate-950"
           : "border-slate-200 bg-white text-slate-700 active:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:active:bg-slate-800"
@@ -365,6 +459,22 @@ function ToggleButton({
     >
       {children}
     </button>
+  );
+}
+
+function FullViewIcon() {
+  return (
+    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h8M4 12h8M4 17h8M17 9v6M14 12h6" />
+    </svg>
+  );
+}
+
+function ShortViewIcon() {
+  return (
+    <svg aria-hidden="true" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h8M4 12h8M4 17h8M14 12h6" />
+    </svg>
   );
 }
 
@@ -407,15 +517,23 @@ function App() {
   const [selectedDayId, setSelectedDayId] = useState(() => loadSettings().selectedDayId ?? "");
   const [schedule, setSchedule] = useState<ScheduleData | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const [headerCollapsed, setHeaderCollapsed] = useState(false);
   const nowRef = useRef(new Date());
   const horizontalRef = useRef<HTMLDivElement | null>(null);
   const pageRefs = useRef<Record<string, HTMLElement | null>>({});
   const eventRefs = useRef<Record<string, HTMLElement | null>>({});
   const didInitialScrollRef = useRef(false);
   const scrollRafRef = useRef<number | null>(null);
+  const verticalScrollRafRef = useRef<number | null>(null);
   const programmaticScrollTargetRef = useRef<string | null>(null);
   const programmaticScrollTimeoutRef = useRef<number | null>(null);
   const pendingEventScrollRef = useRef<ScrollBehavior | null>(null);
+  const pendingVerticalScrollRef = useRef<{ dayId: string; scrollTop: number } | null>(null);
+  const dayScrollTopRef = useRef<Record<string, number>>({});
+  const headerCollapsedRef = useRef(false);
+  const programmaticVerticalScrollUntilRef = useRef(0);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const lastHorizontalGestureAtRef = useRef(Number.NEGATIVE_INFINITY);
 
   const selectedTypesSet = useMemo(() => new Set(settings.selectedTypes), [settings.selectedTypes]);
 
@@ -487,11 +605,6 @@ function App() {
     [selectedTypesSet, settings.showHidden, settings.viewMode]
   );
 
-  const activeDay = useMemo(
-    () => visibleDays.find((day) => day.id === selectedDayId) ?? visibleDays[0],
-    [selectedDayId, visibleDays]
-  );
-
   const findCurrentDayId = useCallback(() => {
     for (const day of visibleDays) {
       const visibleEvents = getVisibleEvents(day);
@@ -517,6 +630,8 @@ function App() {
       const eventNode = event ? eventRefs.current[event.id] : null;
       const pageNode = pageRefs.current[dayId];
 
+      programmaticVerticalScrollUntilRef.current = window.performance.now() + PROGRAMMATIC_HEADER_SCROLL_GUARD_MS;
+
       if (eventNode) {
         eventNode.scrollIntoView({ behavior, block: "center", inline: "nearest" });
       } else {
@@ -538,10 +653,28 @@ function App() {
     }
   }, []);
 
+  const updateHeaderCollapsed = useCallback((collapsed: boolean) => {
+    if (headerCollapsedRef.current === collapsed) {
+      return;
+    }
+
+    headerCollapsedRef.current = collapsed;
+    setHeaderCollapsed(collapsed);
+  }, []);
+
   useEffect(() => {
+    const isTelegramSurface = prepareTelegramWebApp();
+    const cleanupSwipeGuard = isTelegramSurface || hasCoarsePointer()
+      ? installTelegramSwipeHistoryGuard(() => lastHorizontalGestureAtRef.current)
+      : () => undefined;
+
     return () => {
+      cleanupSwipeGuard();
       if (scrollRafRef.current !== null) {
         window.cancelAnimationFrame(scrollRafRef.current);
+      }
+      if (verticalScrollRafRef.current !== null) {
+        window.cancelAnimationFrame(verticalScrollRafRef.current);
       }
       if (programmaticScrollTimeoutRef.current !== null) {
         window.clearTimeout(programmaticScrollTimeoutRef.current);
@@ -604,6 +737,18 @@ function App() {
       didInitialScrollRef.current = true;
     }
   }, [clearProgrammaticScroll, scrollToRelevantEvent, selectedDayId, visibleDays]);
+
+  useEffect(() => {
+    const node = pageRefs.current[selectedDayId];
+    if (!node) {
+      return;
+    }
+
+    dayScrollTopRef.current[selectedDayId] = node.scrollTop;
+    if (node.scrollTop <= HEADER_EXPAND_SCROLL_TOP) {
+      updateHeaderCollapsed(false);
+    }
+  }, [selectedDayId, updateHeaderCollapsed]);
 
   const updateSettings = useCallback((patch: Partial<LocalSettings>) => {
     setSettings((current) => ({ ...current, ...patch }));
@@ -673,6 +818,70 @@ function App() {
     });
   };
 
+  const handleDayScroll = useCallback(
+    (dayId: string, event: UIEvent<HTMLElement>) => {
+      pendingVerticalScrollRef.current = {
+        dayId,
+        scrollTop: event.currentTarget.scrollTop
+      };
+
+      if (verticalScrollRafRef.current !== null) {
+        return;
+      }
+
+      verticalScrollRafRef.current = window.requestAnimationFrame(() => {
+        verticalScrollRafRef.current = null;
+        const pendingScroll = pendingVerticalScrollRef.current;
+        if (!pendingScroll) {
+          return;
+        }
+
+        const previousScrollTop = dayScrollTopRef.current[pendingScroll.dayId] ?? 0;
+        dayScrollTopRef.current[pendingScroll.dayId] = pendingScroll.scrollTop;
+
+        if (window.performance.now() < programmaticVerticalScrollUntilRef.current) {
+          return;
+        }
+
+        if (pendingScroll.scrollTop <= HEADER_EXPAND_SCROLL_TOP) {
+          updateHeaderCollapsed(false);
+          return;
+        }
+
+        const delta = pendingScroll.scrollTop - previousScrollTop;
+        if (delta > HEADER_SCROLL_DELTA) {
+          updateHeaderCollapsed(true);
+        } else if (delta < -HEADER_SCROLL_DELTA) {
+          updateHeaderCollapsed(false);
+        }
+      });
+    },
+    [updateHeaderCollapsed]
+  );
+
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    touchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+  };
+
+  const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current;
+    const touch = event.touches[0];
+    if (!start || !touch) {
+      return;
+    }
+
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
+      lastHorizontalGestureAtRef.current = window.performance.now();
+    }
+  };
+
+  const handleTouchEnd = () => {
+    touchStartRef.current = null;
+  };
+
   if (loadError) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-lg items-center justify-center bg-slate-50 px-5 text-slate-950 shadow-soft dark:bg-slate-950 dark:text-white">
@@ -692,97 +901,116 @@ function App() {
   }
 
   return (
-    <div className="mx-auto flex h-dvh max-w-lg flex-col overflow-hidden bg-slate-50 text-slate-950 shadow-soft dark:bg-slate-950 dark:text-white">
-      <header className="z-10 border-b border-slate-200 bg-slate-50/95 px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-2xl font-black leading-tight">{activeDay?.title ?? "Расписание"}</p>
-            <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-              Обновлено: {formatUpdatedAt(schedule.updatedAt)}
-            </p>
+    <div
+      className="mx-auto flex h-dvh max-w-lg flex-col overflow-hidden bg-slate-50 text-slate-950 shadow-soft dark:bg-slate-950 dark:text-white"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+    >
+      <header
+        className={[
+          "z-10 overflow-hidden border-b border-slate-200 bg-slate-50/95 px-4 backdrop-blur transition-[padding] duration-200 ease-out dark:border-slate-800 dark:bg-slate-950/95",
+          headerCollapsed ? "pb-2 pt-[max(8px,env(safe-area-inset-top))]" : "pb-3 pt-[max(12px,env(safe-area-inset-top))]"
+        ].join(" ")}
+      >
+        <div
+          aria-hidden={headerCollapsed}
+          className={[
+            "overflow-hidden transition-[max-height,opacity,visibility] duration-200 ease-out",
+            headerCollapsed ? "invisible max-h-0 opacity-0" : "visible max-h-48 opacity-100"
+          ].join(" ")}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                Обновлено: {formatUpdatedAt(schedule.updatedAt)}
+              </p>
+            </div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
+
+          <div className="horizontal-scroll-lock -mx-4 mt-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 scrollbar-none">
+            <IconButton
+              active={settings.viewMode === "full"}
+              ariaLabel="Детальный вид"
+              onClick={() => updateSettings({ viewMode: "full" })}
+            >
+              <FullViewIcon />
+            </IconButton>
+            <IconButton
+              active={settings.viewMode === "short"}
+              ariaLabel="Краткий вид"
+              onClick={() => updateSettings({ viewMode: "short" })}
+            >
+              <ShortViewIcon />
+            </IconButton>
+            <IconButton
+              ariaLabel={settings.theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
               onClick={() => updateSettings({ theme: settings.theme === "dark" ? "light" : "dark" })}
-              aria-label={settings.theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
-              title={settings.theme === "dark" ? "Включить светлую тему" : "Включить тёмную тему"}
-              className="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-700 transition active:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:active:bg-slate-800"
             >
               {settings.theme === "dark" ? <SunIcon /> : <MoonIcon />}
-            </button>
-            <button
-              type="button"
+            </IconButton>
+            <IconButton
+              active={settings.showHidden}
+              ariaLabel={settings.showHidden ? "Скрыть прошедшие события" : "Показать скрытые события"}
               onClick={() => updateSettings({ showHidden: !settings.showHidden })}
-              aria-label={settings.showHidden ? "Скрыть прошедшие события" : "Показать скрытые события"}
-              aria-pressed={settings.showHidden}
-              title={settings.showHidden ? "Скрыть прошедшие события" : "Показать скрытые события"}
-              className={[
-                "grid h-10 w-10 place-items-center rounded-lg border transition",
-                settings.showHidden
-                  ? "border-slate-950 bg-slate-950 text-white active:bg-slate-800 dark:border-white dark:bg-white dark:text-slate-950 dark:active:bg-slate-200"
-                  : "border-slate-200 bg-white text-slate-700 active:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:active:bg-slate-800"
-              ].join(" ")}
             >
               {settings.showHidden ? <EyeIcon /> : <EyeOffIcon />}
-            </button>
+            </IconButton>
             <button
               type="button"
               onClick={goToCurrent}
-              className="min-h-10 rounded-lg bg-sky-600 px-3 py-2 text-sm font-bold text-white active:bg-sky-700"
+              className="min-h-10 shrink-0 rounded-lg bg-sky-600 px-3 py-2 text-sm font-bold text-white active:bg-sky-700"
             >
               К текущему
             </button>
           </div>
+
+          <div className="horizontal-scroll-lock -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none">
+            <button
+              type="button"
+              onClick={() => updateSettings({ selectedTypes: [...EVENT_TYPES] })}
+              className="min-h-9 shrink-0 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 active:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            >
+              Все
+            </button>
+            {EVENT_TYPES.map((type) => {
+              const meta = TYPE_META[type];
+              const active = selectedTypesSet.has(type);
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => toggleType(type)}
+                  className={[
+                    "min-h-9 shrink-0 rounded-full border px-3 text-sm font-bold transition",
+                    active ? "shadow-sm" : "bg-white text-slate-500 opacity-70 dark:bg-slate-900 dark:text-slate-400"
+                  ].join(" ")}
+                  style={
+                    active
+                      ? {
+                          backgroundColor: meta.bg,
+                          borderColor: meta.border,
+                          color: meta.text
+                        }
+                      : undefined
+                  }
+                >
+                  {meta.shortLabel}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <ToggleButton active={settings.viewMode === "full"} onClick={() => updateSettings({ viewMode: "full" })}>
-            Полное
-          </ToggleButton>
-          <ToggleButton active={settings.viewMode === "short"} onClick={() => updateSettings({ viewMode: "short" })}>
-            Краткое
-          </ToggleButton>
-        </div>
-
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => updateSettings({ selectedTypes: [...EVENT_TYPES] })}
-            className="min-h-9 shrink-0 rounded-full border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 active:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-          >
-            Все
-          </button>
-          {EVENT_TYPES.map((type) => {
-            const meta = TYPE_META[type];
-            const active = selectedTypesSet.has(type);
-            return (
-              <button
-                key={type}
-                type="button"
-                aria-pressed={active}
-                onClick={() => toggleType(type)}
-                className={[
-                  "min-h-9 shrink-0 rounded-full border px-3 text-sm font-bold transition",
-                  active ? "shadow-sm" : "bg-white text-slate-500 opacity-70 dark:bg-slate-900 dark:text-slate-400"
-                ].join(" ")}
-                style={
-                  active
-                    ? {
-                        backgroundColor: meta.bg,
-                        borderColor: meta.border,
-                        color: meta.text
-                      }
-                    : undefined
-                }
-              >
-                {meta.shortLabel}
-              </button>
-            );
-          })}
-        </div>
-
-        <nav className="mt-3 flex gap-2 overflow-x-auto scrollbar-none" aria-label="Дни">
+        <nav
+          className={[
+            "horizontal-scroll-lock -mx-4 flex gap-2 overflow-x-auto px-4 scrollbar-none transition-[margin] duration-200 ease-out",
+            headerCollapsed ? "mt-0" : "mt-3"
+          ].join(" ")}
+          aria-label="Дни"
+        >
           {visibleDays.map((day) => {
             const active = day.id === selectedDayId;
             const past = isDayPast(day, nowRef.current);
@@ -814,7 +1042,7 @@ function App() {
         <main
           ref={horizontalRef}
           onScroll={handleHorizontalScroll}
-          className="flex flex-1 snap-x snap-mandatory overflow-x-auto scroll-smooth scrollbar-none"
+          className="horizontal-scroll-lock flex flex-1 snap-x snap-mandatory overflow-x-auto scroll-smooth scrollbar-none"
         >
           {visibleDays.map((day) => {
             const events = getVisibleEvents(day);
@@ -825,8 +1053,12 @@ function App() {
                 key={day.id}
                 ref={(node) => {
                   pageRefs.current[day.id] = node;
+                  if (node) {
+                    dayScrollTopRef.current[day.id] = node.scrollTop;
+                  }
                 }}
-                className="h-full w-full shrink-0 snap-start overflow-y-auto px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-4"
+                className="day-scroll-lock h-full w-full shrink-0 snap-start overflow-y-auto px-4 pb-[max(24px,env(safe-area-inset-bottom))] pt-4"
+                onScroll={(event) => handleDayScroll(day.id, event)}
                 aria-label={day.title}
               >
                 <div className="mb-4 flex items-center justify-between gap-3">
