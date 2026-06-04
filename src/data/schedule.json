@@ -1,0 +1,510 @@
+{
+  "updatedAt": "2026-06-06T22:40:00+03:00",
+  "timezone": "Europe/Moscow",
+  "days": [
+    {
+      "id": "2026-06-07",
+      "date": "2026-06-07",
+      "title": "Вс, 7 июня",
+      "events": [
+        {
+          "id": "conf-full-day",
+          "title": "Конференция",
+          "start": "2026-06-07T11:00:00+03:00",
+          "end": "2026-06-07T18:30:00+03:00",
+          "type": "conference",
+          "visibility": { "short": true, "full": false },
+          "location": { "name": "Офис Яндекса" }
+        },
+        {
+          "id": "breakfast-7",
+          "title": "Завтрак в Palmira Art",
+          "start": "2026-06-07T09:00:00+03:00",
+          "end": "2026-06-07T10:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true },
+          "location": { "name": "Palmira Art" }
+        },
+        {
+          "id": "road-to-yandex",
+          "title": "Дорога до офиса Яндекса",
+          "start": "2026-06-07T10:00:00+03:00",
+          "end": "2026-06-07T10:45:00+03:00",
+          "type": "transport",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "registration",
+          "title": "Регистрация, кофе, общение",
+          "start": "2026-06-07T11:00:00+03:00",
+          "end": "2026-06-07T12:00:00+03:00",
+          "type": "conference",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "opening",
+          "title": "Открытие конференции",
+          "start": "2026-06-07T12:00:00+03:00",
+          "end": "2026-06-07T12:10:00+03:00",
+          "type": "conference",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "ai-talk-1",
+          "title": "Внедрение AI в инженерные команды",
+          "start": "2026-06-07T12:20:00+03:00",
+          "end": "2026-06-07T13:00:00+03:00",
+          "type": "talk",
+          "visibility": { "short": false, "full": true },
+          "choiceGroupId": "conf-1220"
+        },
+        {
+          "id": "not-ai-talk-1",
+          "title": "Архитектура, перформанс, дебаг: как мы делали медиаленту",
+          "start": "2026-06-07T12:20:00+03:00",
+          "end": "2026-06-07T13:00:00+03:00",
+          "type": "talk",
+          "visibility": { "short": false, "full": true },
+          "choiceGroupId": "conf-1220"
+        },
+        {
+          "id": "break-1300",
+          "title": "Перерыв",
+          "start": "2026-06-07T13:00:00+03:00",
+          "end": "2026-06-07T13:10:00+03:00",
+          "type": "break",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "ai-talk-2",
+          "title": "Эволюция скиллов в агентской разработке: сценарии использования и сравнение с MCP",
+          "start": "2026-06-07T13:10:00+03:00",
+          "end": "2026-06-07T13:50:00+03:00",
+          "type": "talk",
+          "visibility": { "short": false, "full": true },
+          "choiceGroupId": "conf-1310"
+        },
+        {
+          "id": "not-ai-talk-2",
+          "title": "SwiftSyntax: пишем свой DI framework",
+          "start": "2026-06-07T13:10:00+03:00",
+          "end": "2026-06-07T13:50:00+03:00",
+          "type": "talk",
+          "visibility": { "short": false, "full": true },
+          "choiceGroupId": "conf-1310"
+        },
+        {
+          "id": "lunch-7",
+          "title": "Обед",
+          "start": "2026-06-07T13:50:00+03:00",
+          "end": "2026-06-07T14:30:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "ai-talk-3",
+          "title": "Почему AI-агенты тормозят в больших кодовых базах из-за grep и как мы это исправили",
+          "start": "2026-06-07T14:30:00+03:00",
+          "end": "2026-06-07T15:50:00+03:00",
+          "type": "talk",
+          "visibility": { "short": false, "full": true },
+          "choiceGroupId": "conf-1430"
+        },
+        {
+          "id": "not-ai-talk-3",
+          "title": "yx_state + yx_scope + yx_navigation: единый стек Flutter-приложений",
+          "start": "2026-06-07T14:30:00+03:00",
+          "end": "2026-06-07T15:50:00+03:00",
+          "type": "talk",
+          "visibility": { "short": false, "full": true },
+          "choiceGroupId": "conf-1430"
+        },
+        {
+          "id": "break-1550",
+          "title": "Перерыв",
+          "start": "2026-06-07T15:50:00+03:00",
+          "end": "2026-06-07T16:00:00+03:00",
+          "type": "break",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "not-ai-talk-4",
+          "title": "Как мы внедряли Compose Multiplatform в Я.Team",
+          "start": "2026-06-07T16:00:00+03:00",
+          "end": "2026-06-07T16:50:00+03:00",
+          "type": "talk",
+          "visibility": { "short": false, "full": true },
+          "choiceGroupId": "conf-1600"
+        },
+        {
+          "id": "ai-talk-4",
+          "title": "Оживляем мобильное приложение с помощью LLM-агента",
+          "start": "2026-06-07T16:00:00+03:00",
+          "end": "2026-06-07T17:20:00+03:00",
+          "type": "talk",
+          "visibility": { "short": false, "full": true },
+          "choiceGroupId": "conf-1600"
+        },
+        {
+          "id": "break-1650",
+          "title": "Перерыв",
+          "start": "2026-06-07T16:50:00+03:00",
+          "end": "2026-06-07T17:30:00+03:00",
+          "type": "break",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "ai-talk-5",
+          "title": "Обратная сторона AI в мобильной разработке",
+          "start": "2026-06-07T17:30:00+03:00",
+          "end": "2026-06-07T18:30:00+03:00",
+          "type": "talk",
+          "visibility": { "short": false, "full": true },
+          "choiceGroupId": "conf-1730"
+        },
+        {
+          "id": "not-ai-talk-5",
+          "title": "T-Shape мобильный разработчик",
+          "start": "2026-06-07T17:30:00+03:00",
+          "end": "2026-06-07T18:30:00+03:00",
+          "type": "talk",
+          "visibility": { "short": false, "full": true },
+          "choiceGroupId": "conf-1730"
+        },
+        {
+          "id": "quiz",
+          "title": "Квиз",
+          "start": "2026-06-07T19:00:00+03:00",
+          "end": "2026-06-07T20:30:00+03:00",
+          "type": "activity",
+          "visibility": { "short": true, "full": true }
+        },
+        {
+          "id": "dinner-7",
+          "title": "Ужин",
+          "description": "Если не будет afterparty — рядом с конфой или ближе к отелю.",
+          "start": "2026-06-07T20:30:00+03:00",
+          "end": "2026-06-07T22:30:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        }
+      ]
+    },
+    {
+      "id": "2026-06-08",
+      "date": "2026-06-08",
+      "title": "Пн, 8 июня",
+      "events": [
+        {
+          "id": "breakfast-8",
+          "title": "Завтрак",
+          "start": "2026-06-08T09:00:00+03:00",
+          "end": "2026-06-08T10:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true },
+          "location": { "name": "Palmira Art" }
+        },
+        {
+          "id": "hackathon-start",
+          "title": "AI-хакатон: цели, выбор задач, разбиение на группы",
+          "description": "Продакт в day off.",
+          "start": "2026-06-08T10:30:00+03:00",
+          "end": "2026-06-08T12:00:00+03:00",
+          "type": "hackathon",
+          "visibility": { "short": true, "full": true }
+        },
+        {
+          "id": "lunch-8",
+          "title": "Обед",
+          "start": "2026-06-08T12:00:00+03:00",
+          "end": "2026-06-08T13:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "hackathon-main",
+          "title": "AI-хакатон: проработка и декомпозиция мобильных задач",
+          "description": "Основной рабочий слот.",
+          "start": "2026-06-08T13:00:00+03:00",
+          "end": "2026-06-08T17:30:00+03:00",
+          "type": "hackathon",
+          "visibility": { "short": true, "full": true }
+        },
+        {
+          "id": "hackathon-summary",
+          "title": "Итоги дня, подготовка демо для PM",
+          "start": "2026-06-08T17:30:00+03:00",
+          "end": "2026-06-08T18:00:00+03:00",
+          "type": "hackathon",
+          "visibility": { "short": true, "full": true }
+        },
+        {
+          "id": "dinner-8",
+          "title": "Ужин",
+          "description": "Время можно сдвинуть под картинг.",
+          "start": "2026-06-08T18:00:00+03:00",
+          "end": "2026-06-08T19:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "karting",
+          "title": "Картинг",
+          "approximateTime": "Вечер, TBD",
+          "start": "2026-06-08T20:00:00+03:00",
+          "end": "2026-06-08T21:00:00+03:00",
+          "type": "activity",
+          "visibility": { "short": true, "full": true }
+        }
+      ]
+    },
+    {
+      "id": "2026-06-09",
+      "date": "2026-06-09",
+      "title": "Вт, 9 июня",
+      "events": [
+        {
+          "id": "breakfast-9",
+          "title": "Завтрак",
+          "start": "2026-06-09T09:00:00+03:00",
+          "end": "2026-06-09T10:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true },
+          "location": { "name": "Palmira Art" }
+        },
+        {
+          "id": "hackathon-demo",
+          "title": "Демо результатов хакатона PM",
+          "description": "PM уезжает к врачу около 12:00.",
+          "start": "2026-06-09T10:30:00+03:00",
+          "end": "2026-06-09T12:00:00+03:00",
+          "type": "demo",
+          "visibility": { "short": true, "full": true }
+        },
+        {
+          "id": "lunch-9",
+          "title": "Обед",
+          "description": "PM отсутствует примерно с 12:00 до 13:30.",
+          "start": "2026-06-09T12:00:00+03:00",
+          "end": "2026-06-09T13:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "product-ai-brainstorm",
+          "title": "Продуктовый AI-брейншторм с PM",
+          "description": "Отказы на отклики / гипотезы / план проверки.",
+          "start": "2026-06-09T13:30:00+03:00",
+          "end": "2026-06-09T16:30:00+03:00",
+          "type": "brainstorm",
+          "visibility": { "short": true, "full": true }
+        },
+        {
+          "id": "dinner-9",
+          "title": "Ужин",
+          "description": "Заказать еду в офис.",
+          "start": "2026-06-09T18:30:00+03:00",
+          "end": "2026-06-09T19:30:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "board-games",
+          "title": "Настолки в офисе",
+          "start": "2026-06-09T19:30:00+03:00",
+          "end": "2026-06-09T22:00:00+03:00",
+          "type": "activity",
+          "visibility": { "short": true, "full": true }
+        }
+      ]
+    },
+    {
+      "id": "2026-06-10",
+      "date": "2026-06-10",
+      "title": "Ср, 10 июня",
+      "events": [
+        {
+          "id": "breakfast-10",
+          "title": "Завтрак",
+          "start": "2026-06-10T09:00:00+03:00",
+          "end": "2026-06-10T10:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true },
+          "location": { "name": "Palmira Art" }
+        },
+        {
+          "id": "analytics-workshop",
+          "title": "Воркшоп по флоу работы с аналитиками",
+          "description": "С участием PM.",
+          "start": "2026-06-10T10:30:00+03:00",
+          "end": "2026-06-10T12:00:00+03:00",
+          "type": "workshop",
+          "visibility": { "short": true, "full": true }
+        },
+        {
+          "id": "lunch-10",
+          "title": "Обед",
+          "start": "2026-06-10T12:00:00+03:00",
+          "end": "2026-06-10T13:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "analytics-action-items",
+          "title": "Фиксация правил и action items по аналитике",
+          "description": "Когда брать портфель в работу, как финализировать аналитику, кто владелец.",
+          "start": "2026-06-10T13:00:00+03:00",
+          "end": "2026-06-10T15:00:00+03:00",
+          "type": "workshop",
+          "visibility": { "short": true, "full": true }
+        },
+        {
+          "id": "dinner-10",
+          "title": "Ужин",
+          "description": "До падела.",
+          "start": "2026-06-10T18:00:00+03:00",
+          "end": "2026-06-10T19:15:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "padel",
+          "title": "Падел",
+          "start": "2026-06-10T20:00:00+03:00",
+          "end": "2026-06-10T21:30:00+03:00",
+          "type": "activity",
+          "visibility": { "short": true, "full": true },
+          "warning": "Нужны спортивная форма и кроссовки."
+        }
+      ]
+    },
+    {
+      "id": "2026-06-11",
+      "date": "2026-06-11",
+      "title": "Чт, 11 июня",
+      "events": [
+        {
+          "id": "breakfast-11",
+          "title": "Завтрак",
+          "start": "2026-06-11T09:00:00+03:00",
+          "end": "2026-06-11T10:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true },
+          "location": { "name": "Palmira Art" }
+        },
+        {
+          "id": "final-sync",
+          "title": "Финальный sync",
+          "description": "Итоги, владельцы, next steps.",
+          "start": "2026-06-11T10:30:00+03:00",
+          "end": "2026-06-11T12:00:00+03:00",
+          "type": "other",
+          "visibility": { "short": true, "full": true }
+        },
+        {
+          "id": "lunch-11",
+          "title": "Обед",
+          "start": "2026-06-11T12:00:00+03:00",
+          "end": "2026-06-11T13:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "free-slot-11",
+          "title": "Свободный / разъездный слот",
+          "description": "Один разработчик улетает в обед и в офис не идёт.",
+          "approximateTime": "После 13:00",
+          "start": "2026-06-11T13:00:00+03:00",
+          "end": "2026-06-11T17:00:00+03:00",
+          "type": "free_time",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "dinner-11",
+          "title": "Ужин",
+          "description": "Для тех, кто остаётся.",
+          "start": "2026-06-11T18:00:00+03:00",
+          "end": "2026-06-11T19:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "climbing",
+          "title": "Скалолазание FunRocks",
+          "description": "Для тех, кто ещё в Москве.",
+          "approximateTime": "Вечер",
+          "start": "2026-06-11T20:00:00+03:00",
+          "end": "2026-06-11T21:30:00+03:00",
+          "type": "activity",
+          "visibility": { "short": true, "full": true },
+          "warning": "Нужны спортивная форма и кроссовки."
+        }
+      ]
+    },
+    {
+      "id": "2026-06-12",
+      "date": "2026-06-12",
+      "title": "Пт, 12 июня",
+      "events": [
+        {
+          "id": "breakfast-12",
+          "title": "Завтрак",
+          "description": "Пораньше перед дорогой.",
+          "start": "2026-06-12T08:00:00+03:00",
+          "end": "2026-06-12T09:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "road-to-pride-land",
+          "title": "Дорога в Землю Прайда",
+          "description": "Закладывать долгую дорогу туда.",
+          "approximateTime": "Утро",
+          "start": "2026-06-12T09:00:00+03:00",
+          "end": "2026-06-12T12:00:00+03:00",
+          "type": "transport",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "lunch-12",
+          "title": "Обед",
+          "description": "По месту / в дороге.",
+          "start": "2026-06-12T12:00:00+03:00",
+          "end": "2026-06-12T13:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "pride-land",
+          "title": "Земля Прайда",
+          "description": "Без рабочих активностей.",
+          "approximateTime": "День",
+          "start": "2026-06-12T13:00:00+03:00",
+          "end": "2026-06-12T17:00:00+03:00",
+          "type": "activity",
+          "visibility": { "short": true, "full": true }
+        },
+        {
+          "id": "road-back",
+          "title": "Дорога обратно / свободно",
+          "description": "Закладывать долгую дорогу обратно.",
+          "approximateTime": "Вечер",
+          "start": "2026-06-12T17:00:00+03:00",
+          "end": "2026-06-12T19:00:00+03:00",
+          "type": "transport",
+          "visibility": { "short": false, "full": true }
+        },
+        {
+          "id": "dinner-12",
+          "title": "Ужин",
+          "description": "После возвращения / по ситуации.",
+          "start": "2026-06-12T19:00:00+03:00",
+          "end": "2026-06-12T20:00:00+03:00",
+          "type": "meal",
+          "visibility": { "short": false, "full": true }
+        }
+      ]
+    }
+  ]
+}
+
