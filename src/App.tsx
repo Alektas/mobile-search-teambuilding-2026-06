@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import scheduleUrl from "./data/schedule.json?url";
 
-const PASSWORD = "tobxuz-5qafva-kesniK";
 const SETTINGS_KEY = "mobile-search-teambuilding-settings-v1";
 const HOUR_MS = 60 * 60 * 1000;
 const TIMEZONE = "Europe/Moscow";
@@ -27,7 +26,6 @@ type ViewMode = "full" | "short";
 type ThemeMode = "light" | "dark";
 
 type LocalSettings = {
-  authenticated: boolean;
   viewMode: ViewMode;
   showHidden: boolean;
   selectedDayId?: string;
@@ -180,7 +178,6 @@ const TYPE_META: Record<EventType, EventTypeMeta> = {
 };
 
 const DEFAULT_SETTINGS: LocalSettings = {
-  authenticated: false,
   viewMode: "full",
   showHidden: false,
   selectedTypes: [...EVENT_TYPES],
@@ -208,7 +205,6 @@ function loadSettings(): LocalSettings {
       : DEFAULT_SETTINGS.selectedTypes;
 
     return {
-      authenticated: Boolean(parsed.authenticated),
       viewMode: parsed.viewMode === "short" ? "short" : "full",
       showHidden: Boolean(parsed.showHidden),
       selectedDayId: typeof parsed.selectedDayId === "string" ? parsed.selectedDayId : undefined,
@@ -409,8 +405,6 @@ function EyeOffIcon() {
 function App() {
   const [settings, setSettings] = useState<LocalSettings>(() => loadSettings());
   const [selectedDayId, setSelectedDayId] = useState(() => loadSettings().selectedDayId ?? "");
-  const [passwordValue, setPasswordValue] = useState("");
-  const [passwordError, setPasswordError] = useState("");
   const [schedule, setSchedule] = useState<ScheduleData | null>(null);
   const [loadError, setLoadError] = useState(false);
   const nowRef = useRef(new Date());
@@ -445,10 +439,6 @@ function App() {
   }, [settings.theme]);
 
   useEffect(() => {
-    if (!settings.authenticated) {
-      return;
-    }
-
     let cancelled = false;
     setLoadError(false);
 
@@ -473,7 +463,7 @@ function App() {
     return () => {
       cancelled = true;
     };
-  }, [settings.authenticated]);
+  }, []);
 
   const visibleDays = useMemo(() => {
     if (!schedule) {
@@ -619,17 +609,6 @@ function App() {
     setSettings((current) => ({ ...current, ...patch }));
   }, []);
 
-  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (passwordValue === PASSWORD) {
-      setPasswordError("");
-      updateSettings({ authenticated: true });
-      return;
-    }
-
-    setPasswordError("Пароль не подошёл");
-  };
-
   const selectDay = (dayId: string, scrollEvent = false) => {
     if (scrollEvent) {
       pendingEventScrollRef.current = "smooth";
@@ -693,37 +672,6 @@ function App() {
       }
     });
   };
-
-  if (!settings.authenticated) {
-    return (
-      <div className="mx-auto flex min-h-dvh max-w-lg items-center justify-center bg-slate-50 px-5 text-slate-950 shadow-soft dark:bg-slate-950 dark:text-white">
-        <form onSubmit={handleLogin} className="w-full rounded-lg border border-slate-200 bg-white p-5 shadow-soft dark:border-slate-800 dark:bg-slate-900">
-          <div className="mb-5">
-            <h1 className="text-2xl font-bold">Расписание</h1>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Введите пароль для входа</p>
-          </div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200" htmlFor="password">
-            Пароль
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            value={passwordValue}
-            onChange={(event) => setPasswordValue(event.target.value)}
-            className="mt-2 h-12 w-full rounded-lg border border-slate-300 bg-white px-3 text-base outline-none ring-sky-500 transition focus:ring-2 dark:border-slate-700 dark:bg-slate-950"
-          />
-          {passwordError ? <p className="mt-2 text-sm font-medium text-red-600 dark:text-red-400">{passwordError}</p> : null}
-          <button
-            type="submit"
-            className="mt-5 h-12 w-full rounded-lg bg-slate-950 px-4 text-base font-bold text-white active:bg-slate-800 dark:bg-white dark:text-slate-950 dark:active:bg-slate-200"
-          >
-            Войти
-          </button>
-        </form>
-      </div>
-    );
-  }
 
   if (loadError) {
     return (
