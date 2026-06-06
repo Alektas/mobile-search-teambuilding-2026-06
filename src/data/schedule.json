@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-06T22:40:00+03:00",
+  "updatedAt": "2026-06-06T18:55:00+03:00",
   "timezone": "Europe/Moscow",
   "days": [
     {
@@ -250,11 +250,17 @@
         {
           "id": "karting",
           "title": "Картинг",
-          "approximateTime": "Вечер, TBD",
-          "start": "2026-06-08T20:00:00+03:00",
-          "end": "2026-06-08T21:00:00+03:00",
+          "description": "На 4-х человек. Заезды в 21:15 и 22:00.",
+          "approximateTime": "Заезды 21:15 и 22:00",
+          "start": "2026-06-08T21:15:00+03:00",
+          "end": "2026-06-08T22:00:00+03:00",
           "type": "activity",
-          "visibility": { "short": true, "full": true }
+          "visibility": { "short": true, "full": true },
+          "location": {
+            "name": "X-Ti Pilot",
+            "address": "Москва, пр. Шокальского, 52, м. Медведково",
+            "mapUrl": "https://yandex.ru/maps/-/CPXovD0S"
+          }
         }
       ]
     },
@@ -370,10 +376,16 @@
         {
           "id": "padel",
           "title": "Падел",
-          "start": "2026-06-10T20:00:00+03:00",
-          "end": "2026-06-10T21:30:00+03:00",
+          "description": "Забронированы два корта на два часа.",
+          "start": "2026-06-10T20:30:00+03:00",
+          "end": "2026-06-10T22:30:00+03:00",
           "type": "activity",
           "visibility": { "short": true, "full": true },
+          "location": {
+            "name": "Падел Парк",
+            "address": "Москва, 1-й Белокаменный пр., 7А",
+            "mapUrl": "https://yandex.ru/maps/-/CPdevX30"
+          },
           "warning": "Нужны спортивная форма и кроссовки."
         }
       ]
@@ -430,13 +442,17 @@
         },
         {
           "id": "climbing",
-          "title": "Скалолазание FunRocks",
-          "description": "Для тех, кто ещё в Москве.",
-          "approximateTime": "Вечер",
-          "start": "2026-06-11T20:00:00+03:00",
-          "end": "2026-06-11T21:30:00+03:00",
+          "title": "Скалолазание",
+          "description": "Вводное занятие на полтора часа.",
+          "start": "2026-06-11T20:30:00+03:00",
+          "end": "2026-06-11T22:00:00+03:00",
           "type": "activity",
           "visibility": { "short": true, "full": true },
+          "location": {
+            "name": "Центр скалолазания ЦСКА",
+            "address": "Москва, 3-я Песчаная ул., 2, стр. 1",
+            "mapUrl": "https://yandex.ru/maps/-/CPdeUY~9"
+          },
           "warning": "Нужны спортивная форма и кроссовки."
         }
       ]
@@ -507,4 +523,3 @@
     }
   ]
 }
-
