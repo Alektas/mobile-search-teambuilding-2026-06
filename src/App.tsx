@@ -520,6 +520,8 @@ function App() {
   const [headerCollapsed, setHeaderCollapsed] = useState(false);
   const nowRef = useRef(new Date());
   const horizontalRef = useRef<HTMLDivElement | null>(null);
+  const dayNavRef = useRef<HTMLElement | null>(null);
+  const dayChipRefs = useRef<Record<string, HTMLElement | null>>({});
   const pageRefs = useRef<Record<string, HTMLElement | null>>({});
   const eventRefs = useRef<Record<string, HTMLElement | null>>({});
   const didInitialScrollRef = useRef(false);
@@ -653,6 +655,70 @@ function App() {
     }
   }, []);
 
+  const getDayChipScrollLeft = useCallback(
+    (index: number) => {
+      const navNode = dayNavRef.current;
+      const day = visibleDays[index];
+      const chipNode = day ? dayChipRefs.current[day.id] : null;
+      if (!navNode || !chipNode) {
+        return null;
+      }
+
+      const maxScrollLeft = Math.max(0, navNode.scrollWidth - navNode.clientWidth);
+      if (maxScrollLeft === 0) {
+        return 0;
+      }
+
+      const chipLeft =
+        chipNode.getBoundingClientRect().left - navNode.getBoundingClientRect().left + navNode.scrollLeft;
+      const centered = chipLeft + chipNode.offsetWidth / 2 - navNode.clientWidth / 2;
+
+      return Math.min(Math.max(centered, 0), maxScrollLeft);
+    },
+    [visibleDays]
+  );
+
+  const syncDayChipsToProgress = useCallback(
+    (progress: number) => {
+      const navNode = dayNavRef.current;
+      if (!navNode || visibleDays.length === 0) {
+        return;
+      }
+
+      const clamped = Math.min(Math.max(progress, 0), visibleDays.length - 1);
+      const lowerIndex = Math.floor(clamped);
+      const upperIndex = Math.min(lowerIndex + 1, visibleDays.length - 1);
+      const lowerScrollLeft = getDayChipScrollLeft(lowerIndex);
+      const upperScrollLeft = getDayChipScrollLeft(upperIndex);
+      if (lowerScrollLeft === null || upperScrollLeft === null) {
+        return;
+      }
+
+      const targetScrollLeft = lowerScrollLeft + (upperScrollLeft - lowerScrollLeft) * (clamped - lowerIndex);
+      if (Math.abs(navNode.scrollLeft - targetScrollLeft) < 0.5) {
+        return;
+      }
+
+      navNode.scrollLeft = targetScrollLeft;
+    },
+    [getDayChipScrollLeft, visibleDays]
+  );
+
+  const syncDayChipsToCurrentPosition = useCallback(() => {
+    const horizontalNode = horizontalRef.current;
+    const dayIndex = visibleDays.findIndex((day) => day.id === selectedDayId);
+    if (dayIndex < 0) {
+      return;
+    }
+
+    const progress =
+      horizontalNode && horizontalNode.clientWidth > 0
+        ? horizontalNode.scrollLeft / horizontalNode.clientWidth
+        : dayIndex;
+
+    syncDayChipsToProgress(progress);
+  }, [selectedDayId, syncDayChipsToProgress, visibleDays]);
+
   const updateHeaderCollapsed = useCallback((collapsed: boolean) => {
     if (headerCollapsedRef.current === collapsed) {
       return;
@@ -739,6 +805,19 @@ function App() {
   }, [clearProgrammaticScroll, scrollToRelevantEvent, selectedDayId, visibleDays]);
 
   useEffect(() => {
+    syncDayChipsToCurrentPosition();
+  }, [syncDayChipsToCurrentPosition]);
+
+  useEffect(() => {
+    const handleResize = () => syncDayChipsToCurrentPosition();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [syncDayChipsToCurrentPosition]);
+
+  useEffect(() => {
     const node = pageRefs.current[selectedDayId];
     if (!node) {
       return;
@@ -794,6 +873,8 @@ function App() {
       if (!node || node.clientWidth === 0) {
         return;
       }
+
+      syncDayChipsToProgress(node.scrollLeft / node.clientWidth);
 
       const programmaticTarget = programmaticScrollTargetRef.current;
       if (programmaticTarget) {
@@ -1005,6 +1086,7 @@ function App() {
         </div>
 
         <nav
+          ref={dayNavRef}
           className={[
             "horizontal-scroll-lock -mx-4 flex gap-2 overflow-x-auto px-4 scrollbar-none transition-[margin] duration-200 ease-out",
             headerCollapsed ? "mt-0" : "mt-3"
@@ -1017,6 +1099,9 @@ function App() {
             return (
               <button
                 key={day.id}
+                ref={(node) => {
+                  dayChipRefs.current[day.id] = node;
+                }}
                 type="button"
                 onClick={() => selectDay(day.id)}
                 className={[
